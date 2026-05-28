@@ -10,6 +10,7 @@ client/.env
 client/.env.local
 server/.env
 server/.env.local
+infra/.env.prod
 server/dev.db
 server/dev.db-shm
 server/dev.db-wal

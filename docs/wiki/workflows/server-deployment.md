@@ -89,15 +89,64 @@ C:\Windows\System32\OpenSSH\scp.exe -i $HOME\.ssh\weibo_ops_server $env:TEMP\ai-
 10. 验证 `/api/health`、Web 首页、模型配置页和一个非破坏性接口。
 11. 验证通过后再把影子目录切到正式服务目录。
 
+## Docker Compose 生产模板
+
+仓库提供生产模板：
+
+- `infra/docker-compose.prod.yml`
+- `infra/.env.prod.example`
+- `infra/nginx/ai-novel-gateway.conf`
+
+服务器首次准备：
+
+```bash
+cd /opt/ai-novel-production-hub
+cp infra/.env.prod.example infra/.env.prod
+chmod 600 infra/.env.prod
+```
+
+然后编辑 `infra/.env.prod`，至少修改：
+
+- `POSTGRES_PASSWORD`
+- `CORS_ORIGIN`
+- 至少一组 LLM provider key
+- 如暂不启用 RAG，设置 `RAG_ENABLED=false`
+
+启动基础服务并构建镜像：
+
+```bash
+docker compose --env-file infra/.env.prod -f infra/docker-compose.prod.yml build
+docker compose --env-file infra/.env.prod -f infra/docker-compose.prod.yml up -d postgres qdrant
+```
+
+首次部署或 schema 更新后执行数据库迁移：
+
+```bash
+docker compose --env-file infra/.env.prod -f infra/docker-compose.prod.yml --profile migrate run --rm migrate
+```
+
+启动应用：
+
+```bash
+docker compose --env-file infra/.env.prod -f infra/docker-compose.prod.yml up -d api web gateway
+```
+
+默认访问：
+
+```text
+http://<server-ip>:8080
+http://<server-ip>:8080/api/health
+```
+
 ## 推荐验证
 
 最小验证优先，不默认跑全量测试：
 
 - `git status --short --branch`
 - `docker compose ps`
-- `docker compose logs --tail=80 api`
-- `curl http://127.0.0.1:3000/api/health`
-- `curl http://127.0.0.1:<web-port>/`
+- `docker compose --env-file infra/.env.prod -f infra/docker-compose.prod.yml logs --tail=80 api`
+- `curl http://127.0.0.1:8080/api/health`
+- `curl http://127.0.0.1:8080/`
 
 如果本次改动涉及数据库 schema、任务恢复、自动导演、章节生产链、Prompt schema 或 RAG，再补对应定向测试或 smoke check。
 
