@@ -4,6 +4,7 @@ ARG APT_MIRROR=
 ENV PNPM_HOME=/pnpm
 ENV PATH=${PNPM_HOME}:${PATH}
 ENV NODE_ENV=development
+ENV npm_config_build_from_source=true
 USER root
 RUN if [ -n "${APT_MIRROR}" ]; then \
       if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
@@ -39,19 +40,13 @@ RUN pnpm --filter @ai-novel/shared build \
     && pnpm --filter @ai-novel/server prisma:generate \
     && pnpm --filter @ai-novel/server build
 
-FROM base AS prod-deps
+FROM deps AS prod-deps
 WORKDIR /app
-RUN rm -rf /app/* /app/.[!.]* /app/..?* || true
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json .npmrc ./
-COPY client/package.json ./client/package.json
-COPY server/package.json ./server/package.json
-COPY shared/package.json ./shared/package.json
 COPY server/prisma.config.ts ./server/prisma.config.ts
 COPY server/src/config/database.ts ./server/src/config/database.ts
 COPY server/src/prisma ./server/src/prisma
 ENV AI_NOVEL_DATABASE_MODE=postgresql
-RUN pnpm install --frozen-lockfile \
-    && pnpm --filter @ai-novel/server prisma:generate
+RUN pnpm --filter @ai-novel/server prisma:generate
 
 ARG NODE_IMAGE
 FROM ${NODE_IMAGE} AS runtime

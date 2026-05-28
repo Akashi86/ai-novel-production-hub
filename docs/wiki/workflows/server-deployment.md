@@ -112,6 +112,7 @@ chmod 600 infra/.env.prod
 - 至少一组 LLM provider key
 - 如暂不启用 RAG，设置 `RAG_ENABLED=false`
 - 如服务器访问 Debian apt 源较慢，保留或调整 `APT_MIRROR`
+- 如服务器通过本机代理访问 Docker Hub、GitHub 或 npm 更稳定，可设置 `DOCKER_BUILD_NETWORK=host`，并按实际代理地址填写 `DOCKER_BUILD_HTTP_PROXY` / `DOCKER_BUILD_HTTPS_PROXY`
 
 启动基础服务并构建镜像：
 
@@ -159,6 +160,7 @@ http://<server-ip>:8080/api/health
 - 生产 PostgreSQL 没跑 migration，API 容器启动后运行时表结构不匹配。
 - `scp` 卡住时盲目重试大包，实际是 SSH 用户或 key 组合错误。
 - Docker 构建卡在 `apt-get update`，通常是容器内 Debian 源访问不稳；优先通过 `APT_MIRROR` 指定可用镜像源，而不是重复重启构建。
+- 小规格服务器首次 Docker 构建时，BuildKit 可能并行执行多个依赖安装阶段，导致 CPU、内存和 SSH 响应被打满；API 镜像应复用同一份依赖安装结果，生产 compose 可使用 `build.network=host` 和代理参数提升 native 依赖下载稳定性。
 
 ## 相关模块
 
