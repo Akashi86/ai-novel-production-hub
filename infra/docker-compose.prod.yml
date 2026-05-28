@@ -27,6 +27,8 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile.api
+      args:
+        APT_MIRROR: ${APT_MIRROR:-http://mirrors.aliyun.com/debian}
     image: ai-novel-production-hub-api:${APP_IMAGE_TAG:-latest}
     env_file:
       - .env.prod
@@ -43,6 +45,8 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile.api
+      args:
+        APT_MIRROR: ${APT_MIRROR:-http://mirrors.aliyun.com/debian}
     image: ai-novel-production-hub-api:${APP_IMAGE_TAG:-latest}
     container_name: ai-novel-api
     restart: unless-stopped

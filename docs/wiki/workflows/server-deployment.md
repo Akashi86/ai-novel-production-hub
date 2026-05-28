@@ -111,6 +111,7 @@ chmod 600 infra/.env.prod
 - `CORS_ORIGIN`
 - 至少一组 LLM provider key
 - 如暂不启用 RAG，设置 `RAG_ENABLED=false`
+- 如服务器访问 Debian apt 源较慢，保留或调整 `APT_MIRROR`
 
 启动基础服务并构建镜像：
 
@@ -157,6 +158,7 @@ http://<server-ip>:8080/api/health
 - 没有三边检查就 `reset --hard`，覆盖了服务器独有改动。
 - 生产 PostgreSQL 没跑 migration，API 容器启动后运行时表结构不匹配。
 - `scp` 卡住时盲目重试大包，实际是 SSH 用户或 key 组合错误。
+- Docker 构建卡在 `apt-get update`，通常是容器内 Debian 源访问不稳；优先通过 `APT_MIRROR` 指定可用镜像源，而不是重复重启构建。
 
 ## 相关模块
 

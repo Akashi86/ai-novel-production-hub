@@ -1,10 +1,19 @@
 ARG NODE_IMAGE=node:20-bookworm-slim
 FROM ${NODE_IMAGE} AS base
+ARG APT_MIRROR=
 ENV PNPM_HOME=/pnpm
 ENV PATH=${PNPM_HOME}:${PATH}
 ENV NODE_ENV=development
 USER root
-RUN apt-get update \
+RUN if [ -n "${APT_MIRROR}" ]; then \
+      if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
+        sed -i "s|https\?://deb.debian.org/debian-security|${APT_MIRROR}-security|g; s|https\?://security.debian.org/debian-security|${APT_MIRROR}-security|g; s|https\?://deb.debian.org/debian|${APT_MIRROR}|g" /etc/apt/sources.list.d/debian.sources; \
+      fi; \
+      if [ -f /etc/apt/sources.list ]; then \
+        sed -i "s|https\?://deb.debian.org/debian-security|${APT_MIRROR}-security|g; s|https\?://security.debian.org/debian-security|${APT_MIRROR}-security|g; s|https\?://deb.debian.org/debian|${APT_MIRROR}|g" /etc/apt/sources.list; \
+      fi; \
+    fi \
+    && apt-get update \
     && apt-get install -y --no-install-recommends python3 make g++ openssl \
     && rm -rf /var/lib/apt/lists/* \
     && corepack enable
