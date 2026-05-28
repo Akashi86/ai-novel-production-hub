@@ -65,53 +65,21 @@
 - High-density server directories should be reduced incrementally. `routes` should converge into module-owned `http/` entrypoints, `services/novel` should keep only facades and stable shared entrypoints at its root, and `services/novel/director` should converge into owned submodules such as `commands`, `runtime`, `state`, `automation`, `projections`, `recovery`, and `phases`.
 - Each architecture cleanup phase should move only one coherent subsystem, preserve compatibility exports where needed, check dependency direction, and run targeted TypeScript or service-level verification before the phase is considered complete.
 
-## Core Development Boundaries
+## Primary Agent Operating Rules
 
-Use these boundaries before adding or changing second-development features. They are a compact map of the current automatic director, Prompt Registry, task center, and chapter production chain.
+- Treat this file as the high-priority collaboration entrypoint. Keep detailed module boundaries, workflow notes, debugging lessons, and design rationale in `docs/wiki/` or module README files.
+- Before changing automatic director, Prompt Registry, task center, chapter production, RAG, runtime state, or frontend projection behavior, read the relevant wiki page first.
+- Detailed second-development boundaries for automatic director, Prompt Registry, task center, and chapter production live in `docs/wiki/architecture/core-development-boundaries.md`.
+- Prefer small, coherent changes that preserve existing module ownership. Do not mix architecture migration, product behavior, UI polish, and release workflow changes in one uncontrolled diff.
+- If a task creates stable architecture knowledge, update the wiki before considering the phase complete. If it only changes contributor instructions, internal docs, or local workflow notes, do not force release-note updates.
 
-### Automatic Director Boundary
+## Long-Term Memory Rules
 
-- The automatic director is the control plane for moving a novel from inspiration to a writable full-book state. It decides stage flow, approval points, resume/retry behavior, takeover, and auto-execution scope.
-- Do not turn the director into a second chapter writer or repair system. When director-driven work needs chapter text, it must delegate to the unified chapter production chain through the existing production/runtime entrypoints.
-- User actions such as continue, resume, retry, approve, cancel, takeover, or skip quality repair should become commands first. They should not directly execute long LLM chains inside HTTP routes.
-- New director queue work should use the active `DirectorRunCommand` path through `DirectorCommandService`, `DirectorTaskQueue`, `DirectorWorker`, and `DirectorCommandExecutor`.
-- `DirectorRun`, `DirectorStepRun`, `DirectorEvent`, and `DirectorArtifact` are runtime facts and projection sources. Do not treat legacy runtime command tables as the new queue.
-- Related entrypoints: `server/src/routes/novelDirector.ts`, `server/src/services/novel/director/directorSubsystem.ts`, `server/src/services/novel/director/README.md`.
-
-### Prompt Registry Boundary
-
-- `server/src/prompting/` is the product-level prompt governance boundary. New product prompts must be `PromptAsset`s under `server/src/prompting/prompts/<family>/` and registered in `server/src/prompting/registry.ts`.
-- Add AI capability by extending the prompt asset, output schema, context policy, tool contract, repair policy, or semantic retry policy. Do not patch product behavior with keyword routing, local JSON repair, or ad hoc prompt strings in services.
-- Structured output should use the unified prompt runner and schema validation. Deterministic code may normalize aliases and validate safety boundaries after structured output, but must not replace AI judgment for planning, intent recognition, quality decisions, or next-action selection.
-- When touching an old unregistered prompt path, migrate it into the registry by default before extending it.
-- Related entrypoints: `server/src/prompting/README.md`, `server/src/prompting/registry.ts`, `server/src/prompting/core/promptRunner.ts`.
-
-### Task Center Boundary
-
-- The task center is a unified projection and operation surface for background work. It lists, filters, summarizes, retries, cancels, archives, and resumes tasks; it is not the business executor for those tasks.
-- Each task kind should expose a stable adapter that maps its own persistence model into unified task summary/detail shapes. Do not put feature-specific execution logic inside `TaskCenterService`.
-- When adding a new long-running task type, first define or reuse a durable task model, then add a task adapter, list/detail/retry/cancel/archive semantics where applicable, and finally expose it in the task center UI.
-- Recovery reads should describe recoverable positions and reasons. They must not write new recovery events during ordinary polling or detail reads.
-- Related entrypoints: `server/src/routes/tasks.ts`, `server/src/services/task/TaskCenterService.ts`, `server/src/services/task/adapters/`, `client/src/pages/tasks/TaskCenterPage.tsx`.
-
-### Chapter Production Chain Boundary
-
-- Chapter text generation and repair have one business execution chain. Manual single-chapter generation, batch pipeline execution, Creative Hub delegation, and automatic director execution must converge into the same production/runtime path.
-- `NovelProductionOrchestrator` owns stage-level production flow. `ChapterExecutionStageRunner` delegates chapter execution to `ChapterRuntimeCoordinator` for single-chapter streams or to pipeline job APIs for batch ranges.
-- Do not add separate writer, patch repair, heavy repair, full rewrite, or save-content implementations for a specific route, director branch, or UI entry.
-- The chapter hot path is: lightweight readiness check, full chapter generation, structured acceptance gate, timeline check/finalization, bounded repair when needed, content save, and stable/degraded checkpoint before moving to the next chapter.
-- Before a later chapter runs, the previous chapter must satisfy `final_content -> timeline_finalization -> next_chapter`. Timeline finalization belongs to `ChapterTimelineFinalizationService`; director code must not duplicate it.
-- Asset backfill, character/resource ledger updates, RAG indexing, and state snapshots should consume stable chapter content or explicit degraded checkpoints. They should not pull unstable drafts back into the hot path.
-- Related entrypoints: `server/src/services/novel/production/NovelProductionOrchestrator.ts`, `server/src/services/novel/production/ChapterExecutionStageRunner.ts`, `server/src/services/novel/runtime/ChapterRuntimeCoordinator.ts`, `server/src/modules/timeline/`.
-
-### Boundary Decision Checklist
-
-- New AI judgment or generation capability: add or migrate a `PromptAsset`.
-- New director behavior: add command/runtime/projection behavior, then delegate production work outward.
-- New chapter writing or repair behavior: extend the unified chapter runtime or production stage, not a route-specific branch.
-- New background job: add durable task state and a task-center adapter; keep execution in the owning module.
-- New UI status: read a projection/detail API; do not reconstruct runtime truth from unrelated tables in the frontend.
-- Cross-boundary change: update the relevant wiki page when the change creates stable architecture knowledge.
+- Long-term memory library path: `E:\work\Obsidian`.
+- Before starting an important task, prioritize reading related project pages, workflow notes, and experience records from the long-term memory library when they are relevant and available.
+- If a task produces reusable experience, an important decision, a stable workflow, or a project convention, ask at the end whether it should be written into the long-term memory library.
+- Do not write complete conversations verbatim into the knowledge base.
+- Only persist structured conclusions, applicable scenarios, recommended practices, limitations, and related project links.
 
 ## Project Development Wiki Rules
 
