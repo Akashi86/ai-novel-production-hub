@@ -32,7 +32,7 @@ services:
         APT_MIRROR: ${APT_MIRROR:-http://mirrors.aliyun.com/debian}
         HTTP_PROXY: ${DOCKER_BUILD_HTTP_PROXY:-}
         HTTPS_PROXY: ${DOCKER_BUILD_HTTPS_PROXY:-}
-        NO_PROXY: ${DOCKER_BUILD_NO_PROXY:-localhost,127.0.0.1,::1}
+        NO_PROXY: ${DOCKER_BUILD_NO_PROXY:-localhost,127.0.0.1,::1,mirrors.aliyun.com}
     image: ai-novel-production-hub-api:${APP_IMAGE_TAG:-latest}
     env_file:
       - .env.prod
@@ -54,7 +54,7 @@ services:
         APT_MIRROR: ${APT_MIRROR:-http://mirrors.aliyun.com/debian}
         HTTP_PROXY: ${DOCKER_BUILD_HTTP_PROXY:-}
         HTTPS_PROXY: ${DOCKER_BUILD_HTTPS_PROXY:-}
-        NO_PROXY: ${DOCKER_BUILD_NO_PROXY:-localhost,127.0.0.1,::1}
+        NO_PROXY: ${DOCKER_BUILD_NO_PROXY:-localhost,127.0.0.1,::1,mirrors.aliyun.com}
     image: ai-novel-production-hub-api:${APP_IMAGE_TAG:-latest}
     container_name: ai-novel-api
     restart: unless-stopped
@@ -86,7 +86,7 @@ services:
         VITE_API_BASE_URL: ${PUBLIC_API_BASE_URL:-/api}
         HTTP_PROXY: ${DOCKER_BUILD_HTTP_PROXY:-}
         HTTPS_PROXY: ${DOCKER_BUILD_HTTPS_PROXY:-}
-        NO_PROXY: ${DOCKER_BUILD_NO_PROXY:-localhost,127.0.0.1,::1}
+        NO_PROXY: ${DOCKER_BUILD_NO_PROXY:-localhost,127.0.0.1,::1,mirrors.aliyun.com}
     image: ai-novel-production-hub-web:${APP_IMAGE_TAG:-latest}
     container_name: ai-novel-web
     restart: unless-stopped

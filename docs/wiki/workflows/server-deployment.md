@@ -161,6 +161,7 @@ http://<server-ip>:8080/api/health
 - `scp` 卡住时盲目重试大包，实际是 SSH 用户或 key 组合错误。
 - Docker 构建卡在 `apt-get update`，通常是容器内 Debian 源访问不稳；优先通过 `APT_MIRROR` 指定可用镜像源，而不是重复重启构建。
 - 小规格服务器首次 Docker 构建时，BuildKit 可能并行执行多个依赖安装阶段，导致 CPU、内存和 SSH 响应被打满；API 镜像应复用同一份依赖安装结果，生产 compose 可使用 `build.network=host` 和代理参数提升 native 依赖下载稳定性。
+- 如果构建代理导致 apt 镜像返回 `502 Bad Gateway`，把 `APT_MIRROR` 对应域名加入 `DOCKER_BUILD_NO_PROXY`，避免稳定的国内镜像源被代理转发。
 
 ## 相关模块
 
